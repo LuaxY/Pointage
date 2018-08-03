@@ -25,6 +25,8 @@ func main() {
 	systray.Run(syst.OnReady, syst.OnExit)
 }
 
+var mEstimated *systray.MenuItem
+
 func ADP() {
 	location, err := adp.Preload()
 
@@ -52,8 +54,12 @@ func ADP() {
 		menusHistory = append(menusHistory, systray.AddMenuItem("Pas encore pointer", ""))
 	}
 
+	systray.AddSeparator()
+
+	mEstimated = systray.AddMenuItem("Temps de travail estimé: inconnu", "")
+	mEstimated.Disable()
+
 	if cfg.Friday.Shutdown {
-		systray.AddSeparator()
 		mShutdown := systray.AddMenuItem("Arrêt du PC vendredi à "+cfg.Friday.At, "")
 		mShutdown.Disable()
 	}
@@ -165,6 +171,34 @@ func refreshHistory() {
 		menusHistory[index].SetTitle(hour)
 		menusHistory[index].Check()
 	}
+
+	matin, _ := time.Parse(format, cfg.ADP.Auto[0])
+	midi, _ := time.Parse(format, cfg.ADP.Auto[1])
+	aprem, _ := time.Parse(format, cfg.ADP.Auto[2])
+	soir, _ := time.Parse(format, cfg.ADP.Auto[3])
+
+	if len(hours) >= 1 {
+		matin, _ = time.Parse(format, hours[0][13:])
+	}
+
+	if len(hours) >= 2 {
+		midi, _ = time.Parse(format, hours[1][13:])
+	}
+
+	if len(hours) >= 3 {
+		aprem, _ = time.Parse(format, hours[2][13:])
+	}
+
+	if len(hours) >= 4 {
+		soir, _ = time.Parse(format, hours[3][13:])
+	}
+
+	h1 := midi.Sub(matin)
+	h2 := soir.Sub(aprem)
+
+	estimation := h1 + h2 - (30 * time.Minute)
+
+	mEstimated.SetTitle("Temps de travail estimé: " + estimation.String())
 }
 
 func schedul() {
