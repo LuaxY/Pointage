@@ -1,0 +1,25 @@
+1 VERSIONINFO
+FILEVERSION     1,0,0,0
+PRODUCTVERSION  1,0,0,0
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "FileDescription", "Pointage ADP"
+            VALUE "FileVersion", "1.0"
+            VALUE "LegalCopyright", "(c) VoidMX 2018"
+            VALUE "InternalName", "Pointage ADP"
+            VALUE "OriginalFilename", "Pointage.exe"
+            VALUE "ProductName", "Pointage ADP"
+            VALUE "ProductVersion", "1.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+            VALUE "Translation", 0x0409, 0x04B0
+    END
+END
+
+100 ICON "pointage.ico"
+1 RT_MANIFEST "pointage.manifest"
