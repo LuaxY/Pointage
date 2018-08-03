@@ -1,22 +1,29 @@
 package main
 
 import (
+	"fmt"
+	"log"
+	"os/exec"
+	"time"
+
 	"Pointage/adp"
 	"Pointage/config"
 	"Pointage/msgbox"
 	syst "Pointage/systray"
-	"fmt"
+
 	"github.com/getlantern/systray"
 	"github.com/jasonlvhit/gocron"
 	"github.com/lxn/win"
 	"github.com/sqweek/dialog"
 	"gopkg.in/matryer/try.v1"
-	"log"
-	"os/exec"
-	"time"
 )
 
 var cfg = config.Get()
+var format = "15:04"
+var lastActivity time.Time
+var lastLogin time.Time
+var mEstimated *systray.MenuItem
+var menusHistory []*systray.MenuItem
 
 func main() {
 	go activity()
@@ -25,16 +32,37 @@ func main() {
 	systray.Run(syst.OnReady, syst.OnExit)
 }
 
-var mEstimated *systray.MenuItem
+func login() (string, error) {
+	var name string
+	var err error
 
-func ADP() {
-	location, err := adp.Preload()
+	err = try.Do(func(attempt int) (bool, error) {
+		location, err := adp.Preload()
+
+		if err != nil {
+			return attempt < 3, err
+		}
+
+		name, err = adp.Login(cfg.ADP.Username, cfg.ADP.Password, location)
+
+		if err != nil {
+			return attempt < 3, err
+		}
+
+		return false, nil
+	})
 
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
-	name, err := adp.Login(cfg.ADP.Username, cfg.ADP.Password, location)
+	lastLogin = time.Now()
+
+	return name, nil
+}
+
+func ADP() {
+	name, err := login()
 
 	if err != nil {
 		log.Fatal(err)
@@ -87,9 +115,16 @@ func ADP() {
 	go startSchedul()
 }
 
-var format = "15:04"
-
 func pointer(auto bool) {
+	if time.Since(lastLogin).Minutes() >= 10 {
+		_, err := login()
+
+		if err != nil {
+			log.Print(err)
+			return
+		}
+	}
+
 	now, _ := time.Parse(format, time.Now().Format(format))
 
 	hours := []string{"09:00", "12:30", "14:00", "18:00"}
@@ -141,9 +176,16 @@ func pointer(auto bool) {
 	}
 }
 
-var menusHistory []*systray.MenuItem
-
 func refreshHistory() {
+	if time.Since(lastLogin).Minutes() >= 10 {
+		_, err := login()
+
+		if err != nil {
+			log.Print(err)
+			return
+		}
+	}
+
 	for _, menu := range menusHistory {
 		menu.Disable()
 		menu.Uncheck()
@@ -233,8 +275,6 @@ func reset() {
 	schedul()
 	refreshHistory()
 }
-
-var lastActivity time.Time
 
 func activity() {
 	var current, previous win.POINT

@@ -2,6 +2,7 @@ package systray
 
 import (
 	"Pointage/icon"
+
 	"github.com/getlantern/systray"
 )
 

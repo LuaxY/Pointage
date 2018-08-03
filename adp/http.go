@@ -1,14 +1,15 @@
 package adp
 
 import (
-	"Pointage/config"
 	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httputil"
+
+	"Pointage/config"
 )
 
-var client = httpClient()
+var client *http.Client
 
 func httpClient() *http.Client {
 	jar, err := cookiejar.New(&cookiejar.Options{})

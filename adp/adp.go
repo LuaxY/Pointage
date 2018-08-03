@@ -1,19 +1,22 @@
 package adp
 
 import (
-	"Pointage/config"
 	"bytes"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
-	"errors"
+	"Pointage/config"
+
 	"github.com/PuerkitoBio/goquery"
 )
 
 func Preload() (string, error) {
+	client = httpClient()
+
 	// No follow redirect
 	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		return http.ErrUseLastResponse
